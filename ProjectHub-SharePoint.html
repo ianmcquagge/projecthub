@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProjectHub - Engineering Task Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ProjectHub - CSS
+   ============================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'DM Sans', sans-serif; background: #F1F5F9; min-height: 100vh; color: #0F172A; }
+
+/* --- Config Screen --- */
+.config-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+.config-card { background: #fff; border-radius: 16px; padding: 40px; max-width: 520px; width: 100%; box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+.config-card h1 { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+.config-card p { font-size: 14px; color: #64748B; margin-bottom: 24px; }
+.config-card label { font-size: 12px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
+.config-card input { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #E2E8F0; font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; margin-bottom: 16px; }
+.config-card input:focus { border-color: #6366F1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+.config-card button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: linear-gradient(135deg,#6366F1,#8B5CF6); font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 15px; color: #fff; cursor: pointer; }
+.config-card .error { color: #EF4444; font-size: 13px; margin-bottom: 12px; }
+.config-card .hint { font-size: 12px; color: #94A3B8; margin-top: -10px; margin-bottom: 16px; }
+
+/* --- Header --- */
+.header { background: #fff; border-bottom: 1px solid #E2E8F0; padding: 0 32px; position: sticky; top: 0; z-index: 100; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.header-brand { display: flex; align-items: center; gap: 14px; }
+.header-logo { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg,#6366F1,#8B5CF6); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; font-weight: 800; }
+.header-title { font-weight: 800; font-size: 18px; letter-spacing: -0.3px; }
+.header-subtitle { font-size: 11px; color: #94A3B8; font-weight: 500; letter-spacing: 0.5px; }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.search-box { position: relative; }
+.search-box input { padding: 8px 14px 8px 36px; border-radius: 8px; border: 1px solid #E2E8F0; font-family: 'DM Sans', sans-serif; font-size: 13px; width: 220px; outline: none; background: #F8FAFC; }
+.search-box span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #94A3B8; }
+.btn { padding: 8px 16px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; border: none; }
+.btn-outline { border: 1px solid #E2E8F0; background: #fff; color: #475569; }
+.btn-primary { background: linear-gradient(135deg,#6366F1,#8B5CF6); color: #fff; }
+
+/* --- Stats --- */
+.stats-bar { padding: 16px 32px; display: flex; align-items: center; gap: 24px; }
+.stat { display: flex; align-items: center; gap: 8px; }
+.stat-num { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 500; }
+.stat-label { font-size: 12px; color: #64748B; }
+.stat-divider { width: 1px; height: 32px; background: #E2E8F0; }
+.filter-group { display: flex; gap: 6px; margin-left: auto; }
+.filter-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #E2E8F0; background: #fff; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #64748B; cursor: pointer; }
+.filter-btn.active { border: none; background: #0F172A; color: #fff; }
+
+/* --- Board --- */
+.board { padding: 0 32px 32px; }
+.project-row { margin-bottom: 20px; background: #fff; border-radius: 14px; border: 1px solid #E2E8F0; overflow: hidden; }
+.project-header { padding: 14px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid #E2E8F0; }
+.project-header.collapsed { border-bottom: none; }
+.project-dot { width: 16px; height: 16px; border-radius: 5px; flex-shrink: 0; }
+.project-name { font-weight: 700; font-size: 15px; flex: 1; }
+.project-count { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #94A3B8; padding: 2px 10px; background: #F1F5F9; border-radius: 4px; }
+.project-chevron { font-size: 14px; color: #94A3B8; transition: transform 0.2s; }
+.project-chevron.collapsed { transform: rotate(-90deg); }
+.columns-container { display: flex; overflow-x: auto; padding: 12px; gap: 12px; }
+.column { min-width: 260px; max-width: 260px; flex-shrink: 0; background: #F8FAFC; border-radius: 10px; padding: 10px; border: 1px solid #E2E8F0; transition: all 0.15s; }
+.column.drag-over { background: #EEF2FF; border: 2px dashed #6366F1; }
+.column-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 4px; }
+.column-header-left { display: flex; align-items: center; gap: 8px; }
+.column-dot { width: 8px; height: 8px; border-radius: 50%; }
+.column-title { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; }
+.column-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #94A3B8; background: #fff; border-radius: 4px; padding: 1px 6px; }
+.column-tasks { min-height: 60px; }
+.add-task-btn { width: 100%; padding: 8px 0; border-radius: 8px; border: 1px dashed #CBD5E1; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 12px; color: #94A3B8; cursor: pointer; margin-top: 4px; }
+
+/* --- Task Card --- */
+.task-card { background: #fff; border-radius: 10px; padding: 14px; margin-bottom: 8px; cursor: grab; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: all 0.15s; }
+.task-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-1px); }
+.task-card.completed { opacity: 0.6; }
+.task-badges { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.badge { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.badge-high { background: #FEF2F2; color: #EF4444; }
+.badge-medium { background: #FFFBEB; color: #F59E0B; }
+.badge-low { background: #ECFDF5; color: #10B981; }
+.badge-overdue { background: #FEF2F2; color: #EF4444; }
+.task-title { font-size: 14px; font-weight: 600; color: #1E293B; line-height: 1.35; margin-bottom: 10px; }
+.task-title.done { text-decoration: line-through; text-decoration-color: #94A3B8; }
+.task-footer { display: flex; align-items: center; justify-content: space-between; }
+.task-avatars { display: flex; align-items: center; }
+.avatar { width: 24px; height: 24px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; border: 2px solid #fff; }
+.avatar + .avatar { margin-left: -6px; }
+.task-meta { display: flex; align-items: center; gap: 10px; font-size: 11px; color: #94A3B8; }
+.task-meta .overdue { color: #EF4444; font-weight: 600; }
+
+/* --- Modal --- */
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal { background: #fff; border-radius: 16px; width: 580px; max-height: 85vh; overflow: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.3); }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: flex-start; }
+.modal-close { background: none; border: none; font-size: 22px; color: #94A3B8; cursor: pointer; }
+.modal-body { padding: 24px; }
+.modal-title-input { width: 100%; border: none; font-family: 'DM Sans', sans-serif; font-size: 20px; font-weight: 700; color: #0F172A; outline: none; margin-bottom: 20px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.form-label { font-size: 12px; font-weight: 600; color: #64748B; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-select { width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #E2E8F0; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #0F172A; background: #F8FAFC; }
+.priority-btns { display: flex; gap: 6px; }
+.priority-btn { flex: 1; padding: 8px 0; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; }
+.assignee-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.assignee-chip { padding: 6px 12px; border-radius: 20px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; }
+.attachment-list { display: flex; gap: 8px; flex-wrap: wrap; }
+.attachment-item { padding: 8px 12px; border-radius: 8px; background: #F1F5F9; font-size: 13px; color: #475569; }
+.comment-list { max-height: 200px; overflow-y: auto; margin-bottom: 10px; }
+.comment { display: flex; gap: 10px; margin-bottom: 12px; }
+.comment-avatar { width: 28px; height: 28px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+.comment-author { font-size: 12px; color: #64748B; }
+.comment-author strong { color: #334155; }
+.comment-text { font-size: 14px; color: #334155; margin-top: 2px; }
+.comment-input-row { display: flex; gap: 8px; }
+.comment-input { flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid #E2E8F0; font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; }
+.modal-footer { display: flex; gap: 10px; justify-content: space-between; padding-top: 16px; border-top: 1px solid #E2E8F0; }
+.btn-danger { padding: 10px 20px; border-radius: 8px; border: 1px solid #FCA5A5; background: #FEF2F2; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; color: #EF4444; cursor: pointer; }
+.btn-save { padding: 10px 32px; border-radius: 8px; border: none; background: linear-gradient(135deg,#6366F1,#8B5CF6); font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; color: #fff; cursor: pointer; }
+
+/* --- Ink Pad --- */
+.ink-canvas { width: 100%; height: 180px; background: #F8FAFC; border-radius: 12px; border: 2px dashed #CBD5E1; cursor: crosshair; touch-action: none; }
+.ink-result { margin-top: 16px; padding: 16px; background: #F0FDF4; border-radius: 12px; border: 1px solid #BBF7D0; }
+.ink-result-label { font-size: 12px; font-weight: 600; color: #16A34A; margin-bottom: 6px; }
+.ink-result-input { width: 100%; border: none; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600; color: #0F172A; outline: none; }
+
+/* --- Loading --- */
+.loading { display: flex; align-items: center; justify-content: center; padding: 60px; color: #64748B; font-size: 15px; }
+.spinner { width: 24px; height: 24px; border: 3px solid #E2E8F0; border-top-color: #6366F1; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar { height: 6px; width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+// ============================================================
+// ProjectHub - SharePoint REST API App
+// ============================================================
+
+const AVATAR_COLORS = ["#6366F1","#EC4899","#14B8A6","#F97316","#8B5CF6","#06B6D4","#EF4444","#84CC16","#F43F5E","#0EA5E9"];
+const getInitials = n => n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+const getAvatarColor = n => AVATAR_COLORS[n.split("").reduce((a,c)=>a+c.charCodeAt(0),0) % AVATAR_COLORS.length];
+const formatDate = d => { if(!d) return ""; return new Date(d).toLocaleDateString("en-US",{month:"short",day:"numeric"}); };
+const isOverdue = d => { if(!d) return false; return new Date(d) < new Date(new Date().toDateString()); };
+const uid = () => Math.random().toString(36).slice(2,10);
+
+// ============================================================
+// SharePoint REST API Service
+// ============================================================
+class SharePointService {
+    constructor(siteUrl) {
+        this.siteUrl = siteUrl.replace(/\/$/, '');
+        this.apiBase = this.siteUrl + "/_api/web/lists/getbytitle";
+        this.digestValue = null;
+    }
+
+    async getDigest() {
+        const resp = await fetch(this.siteUrl + "/_api/contextinfo", {
+            method: "POST",
+            headers: { "Accept": "application/json;odata=verbose" },
+            credentials: "include"
+        });
+        if (!resp.ok) throw new Error("Failed to get digest. Are you signed into SharePoint?");
+        const data = await resp.json();
+        this.digestValue = data.d.GetContextWebInformation.FormDigestValue;
+        return this.digestValue;
+    }
+
+    async getItems(listName) {
+        const resp = await fetch(
+            `${this.apiBase}('${listName}')/items?$top=1000`,
+            { headers: { "Accept": "application/json;odata=verbose" }, credentials: "include" }
+        );
+        if (!resp.ok) throw new Error(`Failed to load ${listName}`);
+        const data = await resp.json();
+        return data.d.results;
+    }
+
+    async createItem(listName, fields) {
+        if (!this.digestValue) await this.getDigest();
+        const listItemType = await this.getListItemType(listName);
+        const body = { __metadata: { type: listItemType }, ...fields };
+        const resp = await fetch(
+            `${this.apiBase}('${listName}')/items`,
+            {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json;odata=verbose",
+                    "Content-Type": "application/json;odata=verbose",
+                    "X-RequestDigest": this.digestValue
+                },
+                credentials: "include",
+                body: JSON.stringify(body)
+            }
+        );
+        if (!resp.ok) {
+            const err = await resp.text();
+            throw new Error(`Failed to create item in ${listName}: ${err}`);
+        }
+        return (await resp.json()).d;
+    }
+
+    async updateItem(listName, itemId, fields) {
+        if (!this.digestValue) await this.getDigest();
+        const listItemType = await this.getListItemType(listName);
+        const body = { __metadata: { type: listItemType }, ...fields };
+        const resp = await fetch(
+            `${this.apiBase}('${listName}')/items(${itemId})`,
+            {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json;odata=verbose",
+                    "Content-Type": "application/json;odata=verbose",
+                    "X-RequestDigest": this.digestValue,
+                    "IF-MATCH": "*",
+                    "X-HTTP-Method": "MERGE"
+                },
+                credentials: "include",
+                body: JSON.stringify(body)
+            }
+        );
+        if (!resp.ok) throw new Error(`Failed to update item ${itemId} in ${listName}`);
+    }
+
+    async deleteItem(listName, itemId) {
+        if (!this.digestValue) await this.getDigest();
+        const resp = await fetch(
+            `${this.apiBase}('${listName}')/items(${itemId})`,
+            {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json;odata=verbose",
+                    "X-RequestDigest": this.digestValue,
+                    "IF-MATCH": "*",
+                    "X-HTTP-Method": "DELETE"
+                },
+                credentials: "include"
+            }
+        );
+        if (!resp.ok) throw new Error(`Failed to delete item ${itemId} in ${listName}`);
+    }
+
+    async getListItemType(listName) {
+        const resp = await fetch(
+            `${this.apiBase}('${listName}')?$select=ListItemEntityTypeFullName`,
+            { headers: { "Accept": "application/json;odata=verbose" }, credentials: "include" }
+        );
+        const data = await resp.json();
+        return data.d.ListItemEntityTypeFullName;
+    }
+
+    async testConnection() {
+        const resp = await fetch(
+            this.siteUrl + "/_api/web/title",
+            { headers: { "Accept": "application/json;odata=verbose" }, credentials: "include" }
+        );
+        if (!resp.ok) throw new Error("Cannot connect to SharePoint site");
+        return (await resp.json()).d.Title;
+    }
+}
+
+// ============================================================
+// App State
+// ============================================================
+let state = {
+    screen: "config", // config | loading | app
+    siteUrl: localStorage.getItem("ph_siteUrl") || "",
+    siteName: "",
+    error: "",
+    projects: [],
+    filter: "all",
+    searchQuery: "",
+    collapsedProjects: {},
+    selectedTask: null,
+    selectedProject: null,
+    showAddProject: false,
+    showInk: false,
+    dragData: null,
+    dragOverCol: null,
+    sp: null
+};
+
+// ============================================================
+// SharePoint Data Loading
+// ============================================================
+async function loadAllData() {
+    const sp = state.sp;
+    try {
+        const [rawProjects, rawColumns, rawTasks, rawComments] = await Promise.all([
+            sp.getItems("PH_Projects"),
+            sp.getItems("PH_Columns"),
+            sp.getItems("PH_Tasks"),
+            sp.getItems("PH_Comments")
+        ]);
+
+        state.projects = rawProjects
+            .filter(p => !p.IsArchived)
+            .map(p => ({
+                id: p.Id,
+                name: p.ProjectName || p.Title,
+                color: p.ProjectColor || "#6366F1",
+                order: p.ProjectOrder || 0,
+                columns: rawColumns
+                    .filter(c => String(c.ProjectId) === String(p.Id))
+                    .sort((a,b) => (a.ColumnOrder||0) - (b.ColumnOrder||0))
+                    .map(c => c.ColumnName),
+                tasks: rawTasks
+                    .filter(t => String(t.ProjectId) === String(p.Id))
+                    .map(t => ({
+                        id: t.Id,
+                        title: t.TaskTitle || t.Title,
+                        column: t.ColumnName,
+                        priority: t.Priority || "medium",
+                        assignees: safeParseJSON(t.Assignees, []),
+                        due: t.TaskDueDate ? t.TaskDueDate.split("T")[0] : "",
+                        isCompleted: t.IsCompleted || false,
+                        attachments: safeParseJSON(t.TaskAttachments, []),
+                        comments: rawComments
+                            .filter(c => String(c.TaskId) === String(t.Id))
+                            .map(c => ({
+                                id: c.Id,
+                                author: c.AuthorName || "Unknown",
+                                text: c.CommentText,
+                                time: new Date(c.CommentDate || c.Created).getTime()
+                            }))
+                    }))
+            }))
+            .sort((a,b) => a.order - b.order);
+
+        // If no projects exist yet, add default columns info
+        if (state.projects.length === 0) {
+            // No projects yet, that's fine
+        }
+
+        state.screen = "app";
+    } catch (err) {
+        state.error = "Failed to load data: " + err.message;
+        state.screen = "config";
+    }
+    render();
+}
+
+function safeParseJSON(str, fallback) {
+    if (!str) return fallback;
+    try { return JSON.parse(str); } catch { return fallback; }
+}
+
+// ============================================================
+// SharePoint CRUD Operations
+// ============================================================
+async function createProject(name, color, columns) {
+    const sp = state.sp;
+    const project = await sp.createItem("PH_Projects", {
+        Title: name,
+        ProjectName: name,
+        ProjectColor: color,
+        ProjectOrder: Date.now(),
+        IsArchived: false
+    });
+    for (let i = 0; i < columns.length; i++) {
+        await sp.createItem("PH_Columns", {
+            Title: columns[i],
+            ColumnName: columns[i],
+            ProjectId: String(project.Id),
+            ColumnOrder: i,
+            IsCompletedColumn: i === columns.length - 1
+        });
+    }
+    await loadAllData();
+}
+
+async function createTask(projectId, column, title) {
+    const sp = state.sp;
+    await sp.createItem("PH_Tasks", {
+        Title: title,
+        TaskTitle: title,
+        ProjectId: String(projectId),
+        ColumnName: column,
+        Priority: "medium",
+        Assignees: "[]",
+        TaskOrder: Date.now(),
+        IsCompleted: false,
+        TaskAttachments: "[]"
+    });
+    await loadAllData();
+}
+
+async function updateTask(task, project) {
+    const sp = state.sp;
+    const isLastCol = task.column === project.columns[project.columns.length - 1];
+    await sp.updateItem("PH_Tasks", task.id, {
+        TaskTitle: task.title,
+        ColumnName: task.column,
+        Priority: task.priority,
+        Assignees: JSON.stringify(task.assignees),
+        TaskDueDate: task.due || null,
+        IsCompleted: isLastCol,
+        TaskAttachments: JSON.stringify(task.attachments)
+    });
+    await loadAllData();
+}
+
+async function deleteTask(taskId) {
+    await state.sp.deleteItem("PH_Tasks", taskId);
+    await loadAllData();
+}
+
+async function moveTask(taskId, projectId, newColumn) {
+    const project = state.projects.find(p => p.id === projectId);
+    const isLastCol = newColumn === project.columns[project.columns.length - 1];
+    await state.sp.updateItem("PH_Tasks", taskId, {
+        ColumnName: newColumn,
+        IsCompleted: isLastCol
+    });
+    await loadAllData();
+}
+
+async function addComment(taskId, text, authorName) {
+    await state.sp.createItem("PH_Comments", {
+        Title: "Comment",
+        TaskId: String(taskId),
+        CommentText: text,
+        AuthorName: authorName || "You",
+        AuthorEmail: "",
+        CommentDate: new Date().toISOString()
+    });
+    await loadAllData();
+}
+
+// ============================================================
+// Rendering
+// ============================================================
+function render() {
+    const app = document.getElementById("app");
+    if (state.screen === "config") {
+        app.innerHTML = renderConfig();
+        setupConfigEvents();
+    } else if (state.screen === "loading") {
+        app.innerHTML = '<div class="loading"><div class="spinner"></div>Connecting to SharePoint...</div>';
+    } else {
+        app.innerHTML = renderApp();
+        setupAppEvents();
+    }
+}
+
+function renderConfig() {
+    return `
+    <div class="config-screen">
+        <div class="config-card">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+                <div class="header-logo">P</div>
+                <div>
+                    <h1>ProjectHub</h1>
+                    <p style="margin:0">Engineering Task Manager</p>
+                </div>
+            </div>
+            ${state.error ? `<div class="error">${state.error}</div>` : ''}
+            <label>SharePoint Site URL</label>
+            <input id="siteUrlInput" type="text" value="${state.siteUrl}" placeholder="https://yourtenant.sharepoint.com/sites/ProjectHub" />
+            <div class="hint">Make sure you are signed into SharePoint in this browser first.</div>
+            <button id="connectBtn">Connect to SharePoint</button>
+        </div>
+    </div>`;
+}
+
+function renderApp() {
+    const projects = getFilteredProjects();
+    const totalTasks = state.projects.reduce((a,p) => a + p.tasks.length, 0);
+    const completedTasks = state.projects.reduce((a,p) => a + p.tasks.filter(t => t.isCompleted).length, 0);
+    const overdueTasks = state.projects.reduce((a,p) => a + p.tasks.filter(t => isOverdue(t.due) && !t.isCompleted).length, 0);
+
+    return `
+    <div class="header">
+        <div class="header-inner">
+            <div class="header-brand">
+                <div class="header-logo">P</div>
+                <div>
+                    <div class="header-title">ProjectHub</div>
+                    <div class="header-subtitle">${state.siteName || 'ENGINEERING TASK MANAGER'}</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="search-box">
+                    <input id="searchInput" type="text" placeholder="Search tasks..." value="${state.searchQuery}" />
+                    <span>&#128269;</span>
+                </div>
+                <button class="btn btn-outline" id="inkBtn">&#9997; Ink</button>
+                <button class="btn btn-outline" id="refreshBtn">&#8635; Refresh</button>
+                <button class="btn btn-primary" id="addProjectBtn">+ Project</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-bar">
+        <div class="stat"><div class="stat-num">${totalTasks}</div><div class="stat-label">Total<br>Tasks</div></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><div class="stat-num" style="color:#16A34A">${completedTasks}</div><div class="stat-label">Completed</div></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><div class="stat-num" style="color:#EF4444">${overdueTasks}</div><div class="stat-label">Overdue</div></div>
+        <div class="filter-group">
+            <button class="filter-btn ${state.filter==='all'?'active':''}" data-filter="all">All Tasks</button>
+            <button class="filter-btn ${state.filter==='overdue'?'active':''}" data-filter="overdue">Overdue</button>
+            <button class="filter-btn ${state.filter==='high'?'active':''}" data-filter="high">High Priority</button>
+        </div>
+    </div>
+
+    <div class="board">
+        ${projects.map(p => renderProject(p)).join('')}
+        ${projects.length === 0 ? '<div class="loading">No projects yet. Click "+ Project" to create one.</div>' : ''}
+    </div>
+
+    ${state.showAddProject ? renderAddProjectModal() : ''}
+    ${state.selectedTask ? renderTaskModal() : ''}
+    ${state.showInk ? renderInkModal() : ''}
+    `;
+}
+
+function renderProject(project) {
+    const collapsed = state.collapsedProjects[project.id];
+    return `
+    <div class="project-row">
+        <div class="project-header ${collapsed?'collapsed':''}" data-project-id="${project.id}">
+            <div class="project-dot" style="background:${project.color}"></div>
+            <div class="project-name">${project.name}</div>
+            <span class="project-count">${project.tasks.length} task${project.tasks.length!==1?'s':''}</span>
+            <span class="project-chevron ${collapsed?'collapsed':''}">&#9660;</span>
+        </div>
+        ${!collapsed ? `
+        <div class="columns-container">
+            ${project.columns.map((col, ci) => {
+                const isLast = ci === project.columns.length - 1;
+                const tasks = project.tasks.filter(t => t.column === col);
+                return `
+                <div class="column" data-project-id="${project.id}" data-column="${col}">
+                    <div class="column-header">
+                        <div class="column-header-left">
+                            <div class="column-dot" style="background:${isLast?'#16A34A':project.color}"></div>
+                            <span class="column-title">${col}</span>
+                        </div>
+                        <span class="column-count">${tasks.length}</span>
+                    </div>
+                    <div class="column-tasks" data-project-id="${project.id}" data-column="${col}">
+                        ${tasks.map(t => renderTaskCard(t, project)).join('')}
+                    </div>
+                    ${!isLast ? `<button class="add-task-btn" data-project-id="${project.id}" data-column="${col}">+ Add task</button>` : ''}
+                </div>`;
+            }).join('')}
+        </div>` : ''}
+    </div>`;
+}
+
+function renderTaskCard(task, project) {
+    const isCompleted = task.column === project.columns[project.columns.length - 1];
+    const overdue = isOverdue(task.due) && !isCompleted;
+    return `
+    <div class="task-card ${isCompleted?'completed':''}" draggable="true" data-task-id="${task.id}" data-project-id="${project.id}">
+        <div class="task-badges">
+            <span class="badge badge-${task.priority}">${task.priority === 'high' ? 'High' : task.priority === 'medium' ? 'Med' : 'Low'}</span>
+            ${overdue ? '<span class="badge badge-overdue">OVERDUE</span>' : ''}
+            ${isCompleted ? '<span style="margin-left:auto;font-size:14px">&#10003;</span>' : ''}
+        </div>
+        <div class="task-title ${isCompleted?'done':''}">${task.title}</div>
+        <div class="task-footer">
+            <div class="task-avatars">
+                ${task.assignees.slice(0,3).map((a,i) => `<div class="avatar" style="background:${getAvatarColor(a)};z-index:${3-i}" title="${a}">${getInitials(a)}</div>`).join('')}
+                ${task.assignees.length > 3 ? `<span style="font-size:11px;color:#94A3B8;margin-left:4px">+${task.assignees.length-3}</span>` : ''}
+            </div>
+            <div class="task-meta">
+                ${task.attachments.length > 0 ? `<span>&#128206;${task.attachments.length}</span>` : ''}
+                ${task.comments.length > 0 ? `<span>&#128172;${task.comments.length}</span>` : ''}
+                ${task.due ? `<span class="${overdue?'overdue':''}">${formatDate(task.due)}</span>` : ''}
+            </div>
+        </div>
+    </div>`;
+}
+
+function renderAddProjectModal() {
+    return `
+    <div class="modal-overlay" id="addProjectOverlay">
+        <div class="modal" style="width:460px" onclick="event.stopPropagation()">
+            <div class="modal-body">
+                <div style="font-weight:700;font-size:20px;margin-bottom:24px">New Project</div>
+                <label class="form-label">PROJECT NAME</label>
+                <input id="newProjectName" type="text" placeholder="e.g. Chiller Replacement - Bldg 12" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #E2E8F0;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;margin-bottom:16px" />
+                <label class="form-label">COLOR</label>
+                <div id="colorPicker" style="display:flex;gap:8px;margin-bottom:16px">
+                    ${["#6366F1","#EC4899","#14B8A6","#F97316","#8B5CF6","#06B6D4","#EF4444","#84CC16"].map((c,i) =>
+                        `<div class="color-opt" data-color="${c}" style="width:32px;height:32px;border-radius:50%;background:${c};cursor:pointer;border:${i===0?'3px solid #0F172A':'2px solid transparent'}"></div>`
+                    ).join('')}
+                </div>
+                <label class="form-label">COLUMNS (comma-separated)</label>
+                <input id="newProjectCols" type="text" value="To Do, In Progress, Completed" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #E2E8F0;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;margin-bottom:24px" />
+                <div style="display:flex;gap:10px;justify-content:flex-end">
+                    <button class="btn btn-outline" id="cancelAddProject">Cancel</button>
+                    <button class="btn-save" id="confirmAddProject">Create Project</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+function renderTaskModal() {
+    const task = state.selectedTask;
+    const project = state.selectedProject;
+    if (!task || !project) return '';
+    return `
+    <div class="modal-overlay" id="taskModalOverlay">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <div style="width:14px;height:14px;border-radius:4px;background:${project.color}"></div>
+                    <span style="font-size:13px;color:#64748B;font-weight:500">${project.name}</span>
+                </div>
+                <button class="modal-close" id="closeTaskModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input class="modal-title-input" id="editTaskTitle" value="${task.title}" />
+                <div class="form-row">
+                    <div>
+                        <label class="form-label">STATUS</label>
+                        <select class="form-select" id="editTaskColumn">
+                            ${project.columns.map(c => `<option value="${c}" ${task.column===c?'selected':''}>${c}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">PRIORITY</label>
+                        <div class="priority-btns">
+                            ${[['high','High','#EF4444','#FEF2F2'],['medium','Med','#F59E0B','#FFFBEB'],['low','Low','#10B981','#ECFDF5']].map(([k,l,c,bg]) =>
+                                `<div class="priority-btn" data-priority="${k}" style="border:${task.priority===k?`2px solid ${c}`:'1px solid #E2E8F0'};background:${task.priority===k?bg:'#fff'};color:${c}">${l}</div>`
+                            ).join('')}
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-bottom:20px">
+                    <label class="form-label">DUE DATE</label>
+                    <input type="date" id="editTaskDue" value="${task.due||''}" style="padding:8px 12px;border-radius:8px;border:1px solid #E2E8F0;font-family:'DM Sans',sans-serif;font-size:14px;color:#0F172A;background:#F8FAFC" />
+                </div>
+                <div style="margin-bottom:20px">
+                    <label class="form-label">ASSIGNEES</label>
+                    <div style="display:flex;gap:8px;margin-bottom:8px">
+                        <input type="text" id="newAssigneeInput" placeholder="Type a name and press Enter" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid #E2E8F0;font-family:'DM Sans',sans-serif;font-size:13px;outline:none" />
+                    </div>
+                    <div class="assignee-chips" id="assigneeChips">
+                        ${task.assignees.map(a => `<span class="assignee-chip" data-name="${a}" style="border:2px solid ${getAvatarColor(a)};background:${getAvatarColor(a)}18;color:${getAvatarColor(a)}">${a} &times;</span>`).join('')}
+                    </div>
+                </div>
+                <div style="margin-bottom:20px">
+                    <label class="form-label">COMMENTS (${task.comments.length})</label>
+                    <div class="comment-list">
+                        ${task.comments.map(c => `
+                        <div class="comment">
+                            <div class="comment-avatar" style="background:${getAvatarColor(c.author)}">${getInitials(c.author)}</div>
+                            <div>
+                                <div class="comment-author"><strong>${c.author}</strong> &middot; ${new Date(c.time).toLocaleDateString()}</div>
+                                <div class="comment-text">${c.text}</div>
+                            </div>
+                        </div>`).join('')}
+                    </div>
+                    <div class="comment-input-row">
+                        <input class="comment-input" id="newCommentInput" placeholder="Add a comment..." />
+                        <button class="btn btn-primary" id="addCommentBtn">Send</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-danger" id="deleteTaskBtn">Delete Task</button>
+                    <button class="btn-save" id="saveTaskBtn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+function renderInkModal() {
+    return `
+    <div class="modal-overlay" id="inkOverlay">
+        <div class="modal" style="width:520px" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div>
+                    <div style="font-weight:700;font-size:18px">&#9997; Handwrite Task</div>
+                    <div style="font-size:13px;color:#64748B;margin-top:2px">Write with your finger or stylus, then convert</div>
+                </div>
+                <button class="modal-close" id="closeInk">&times;</button>
+            </div>
+            <div class="modal-body">
+                <canvas id="inkCanvas" class="ink-canvas"></canvas>
+                <div style="display:flex;gap:8px;margin-top:16px">
+                    <button class="btn btn-outline" style="flex:1" id="clearInk">Clear</button>
+                    <button class="btn-save" style="flex:2" id="convertInk">Convert to Text</button>
+                </div>
+                <div id="inkResult" style="display:none">
+                    <div class="ink-result">
+                        <div class="ink-result-label">RECOGNIZED TEXT</div>
+                        <input class="ink-result-input" id="inkText" />
+                        <div style="margin-top:8px">
+                            <label class="form-label">ADD TO PROJECT</label>
+                            <select class="form-select" id="inkProject">
+                                ${state.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <button class="btn-save" style="width:100%;margin-top:12px" id="inkAddTask">Add as Task &rarr;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+// ============================================================
+// Filtering
+// ============================================================
+function getFilteredProjects() {
+    return state.projects.map(p => ({
+        ...p,
+        tasks: p.tasks.filter(t => {
+            if (state.searchQuery && !t.title.toLowerCase().includes(state.searchQuery.toLowerCase())) return false;
+            if (state.filter === "overdue") return isOverdue(t.due) && !t.isCompleted;
+            if (state.filter === "high") return t.priority === "high";
+            return true;
+        })
+    }));
+}
+
+// ============================================================
+// Event Binding
+// ============================================================
+function setupConfigEvents() {
+    document.getElementById("connectBtn").onclick = async () => {
+        const url = document.getElementById("siteUrlInput").value.trim();
+        if (!url) { state.error = "Please enter a URL."; render(); return; }
+        state.siteUrl = url;
+        state.error = "";
+        state.screen = "loading";
+        render();
+
+        try {
+            state.sp = new SharePointService(url);
+            state.siteName = await state.sp.testConnection();
+            await state.sp.getDigest();
+            localStorage.setItem("ph_siteUrl", url);
+            await loadAllData();
+        } catch (err) {
+            state.error = err.message + ". Make sure you are signed into SharePoint in this browser.";
+            state.screen = "config";
+            render();
+        }
+    };
+}
+
+function setupAppEvents() {
+    // Search
+    const searchInput = document.getElementById("searchInput");
+    if (searchInput) searchInput.oninput = (e) => { state.searchQuery = e.target.value; render(); };
+
+    // Filters
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.onclick = () => { state.filter = btn.dataset.filter; render(); };
+    });
+
+    // Collapse
+    document.querySelectorAll(".project-header").forEach(h => {
+        h.onclick = () => {
+            const pid = h.dataset.projectId;
+            state.collapsedProjects[pid] = !state.collapsedProjects[pid];
+            render();
+        };
+    });
+
+    // Add project
+    const addProjectBtn = document.getElementById("addProjectBtn");
+    if (addProjectBtn) addProjectBtn.onclick = () => { state.showAddProject = true; render(); };
+
+    // Refresh
+    const refreshBtn = document.getElementById("refreshBtn");
+    if (refreshBtn) refreshBtn.onclick = async () => { state.screen = "loading"; render(); await loadAllData(); };
+
+    // Ink
+    const inkBtn = document.getElementById("inkBtn");
+    if (inkBtn) inkBtn.onclick = () => { state.showInk = true; render(); setupInkCanvas(); };
+
+    // Add task buttons
+    document.querySelectorAll(".add-task-btn").forEach(btn => {
+        btn.onclick = async () => {
+            const title = prompt("Task title:");
+            if (title) await createTask(parseInt(btn.dataset.projectId), btn.dataset.column, title);
+        };
+    });
+
+    // Task card click
+    document.querySelectorAll(".task-card").forEach(card => {
+        card.onclick = (e) => {
+            if (e.defaultPrevented) return;
+            const projectId = parseInt(card.dataset.projectId);
+            const taskId = parseInt(card.dataset.taskId);
+            const project = state.projects.find(p => p.id === projectId);
+            const task = project?.tasks.find(t => t.id === taskId);
+            if (task && project) {
+                state.selectedTask = { ...task, assignees: [...task.assignees] };
+                state.selectedProject = project;
+                render();
+            }
+        };
+    });
+
+    // Drag and drop
+    document.querySelectorAll(".task-card").forEach(card => {
+        card.ondragstart = (e) => {
+            state.dragData = { taskId: parseInt(card.dataset.taskId), projectId: parseInt(card.dataset.projectId) };
+            e.dataTransfer.effectAllowed = "move";
+        };
+    });
+    document.querySelectorAll(".column-tasks").forEach(zone => {
+        zone.ondragover = (e) => { e.preventDefault(); zone.parentElement.classList.add("drag-over"); };
+        zone.ondragleave = () => { zone.parentElement.classList.remove("drag-over"); };
+        zone.ondrop = async (e) => {
+            e.preventDefault();
+            zone.parentElement.classList.remove("drag-over");
+            if (state.dragData && parseInt(zone.dataset.projectId) === state.dragData.projectId) {
+                await moveTask(state.dragData.taskId, state.dragData.projectId, zone.dataset.column);
+            }
+            state.dragData = null;
+        };
+    });
+
+    // Add project modal
+    setupAddProjectModal();
+
+    // Task modal
+    setupTaskModal();
+
+    // Ink modal
+    if (state.showInk) setupInkCanvas();
+}
+
+function setupAddProjectModal() {
+    const overlay = document.getElementById("addProjectOverlay");
+    if (!overlay) return;
+    overlay.onclick = () => { state.showAddProject = false; render(); };
+
+    let selectedColor = "#6366F1";
+    document.querySelectorAll(".color-opt").forEach(opt => {
+        opt.onclick = () => {
+            selectedColor = opt.dataset.color;
+            document.querySelectorAll(".color-opt").forEach(o => o.style.border = "2px solid transparent");
+            opt.style.border = "3px solid #0F172A";
+        };
+    });
+
+    document.getElementById("cancelAddProject").onclick = () => { state.showAddProject = false; render(); };
+    document.getElementById("confirmAddProject").onclick = async () => {
+        const name = document.getElementById("newProjectName").value.trim();
+        const cols = document.getElementById("newProjectCols").value.split(",").map(c => c.trim()).filter(Boolean);
+        if (!name || cols.length === 0) return;
+        state.showAddProject = false;
+        state.screen = "loading";
+        render();
+        await createProject(name, selectedColor, cols);
+    };
+}
+
+function setupTaskModal() {
+    const overlay = document.getElementById("taskModalOverlay");
+    if (!overlay) return;
+    overlay.onclick = () => { state.selectedTask = null; state.selectedProject = null; render(); };
+
+    document.getElementById("closeTaskModal").onclick = () => { state.selectedTask = null; state.selectedProject = null; render(); };
+
+    // Priority buttons
+    document.querySelectorAll(".priority-btn").forEach(btn => {
+        btn.onclick = () => { state.selectedTask.priority = btn.dataset.priority; render(); };
+    });
+
+    // Add assignee
+    document.getElementById("newAssigneeInput").onkeydown = (e) => {
+        if (e.key === "Enter" && e.target.value.trim()) {
+            state.selectedTask.assignees.push(e.target.value.trim());
+            render();
+        }
+    };
+
+    // Remove assignee
+    document.querySelectorAll(".assignee-chip").forEach(chip => {
+        chip.onclick = () => {
+            state.selectedTask.assignees = state.selectedTask.assignees.filter(a => a !== chip.dataset.name);
+            render();
+        };
+    });
+
+    // Add comment
+    document.getElementById("addCommentBtn").onclick = async () => {
+        const text = document.getElementById("newCommentInput").value.trim();
+        if (!text) return;
+        await addComment(state.selectedTask.id, text, "You");
+        // Reload task
+        const project = state.projects.find(p => p.id === state.selectedProject.id);
+        const task = project?.tasks.find(t => t.id === state.selectedTask.id);
+        if (task) { state.selectedTask = { ...task, assignees: [...task.assignees] }; state.selectedProject = project; }
+        render();
+    };
+
+    // Delete
+    document.getElementById("deleteTaskBtn").onclick = async () => {
+        if (confirm("Delete this task?")) {
+            const taskId = state.selectedTask.id;
+            state.selectedTask = null;
+            state.selectedProject = null;
+            state.screen = "loading";
+            render();
+            await deleteTask(taskId);
+        }
+    };
+
+    // Save
+    document.getElementById("saveTaskBtn").onclick = async () => {
+        const task = state.selectedTask;
+        task.title = document.getElementById("editTaskTitle").value;
+        task.column = document.getElementById("editTaskColumn").value;
+        task.due = document.getElementById("editTaskDue").value;
+        const project = state.selectedProject;
+        state.selectedTask = null;
+        state.selectedProject = null;
+        state.screen = "loading";
+        render();
+        await updateTask(task, project);
+    };
+}
+
+function setupInkCanvas() {
+    const canvas = document.getElementById("inkCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * 2;
+    canvas.height = rect.height * 2;
+    ctx.scale(2, 2);
+    ctx.strokeStyle = "#1E293B";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    let drawing = false;
+    let paths = [];
+    let current = [];
+
+    const getPos = e => {
+        const r = canvas.getBoundingClientRect();
+        const t = e.touches ? e.touches[0] : e;
+        return { x: t.clientX - r.left, y: t.clientY - r.top };
+    };
+
+    const redraw = () => {
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        [...paths, current].forEach(p => {
+            if (p.length < 2) return;
+            ctx.beginPath();
+            ctx.moveTo(p[0].x, p[0].y);
+            p.slice(1).forEach(pt => ctx.lineTo(pt.x, pt.y));
+            ctx.stroke();
+        });
+    };
+
+    const start = e => { e.preventDefault(); drawing = true; current = [getPos(e)]; };
+    const move = e => { e.preventDefault(); if (!drawing) return; current.push(getPos(e)); redraw(); };
+    const end = e => { e.preventDefault(); if (current.length > 1) paths.push(current); current = []; drawing = false; };
+
+    canvas.onmousedown = start; canvas.onmousemove = move; canvas.onmouseup = end; canvas.onmouseleave = end;
+    canvas.ontouchstart = start; canvas.ontouchmove = move; canvas.ontouchend = end;
+
+    document.getElementById("clearInk").onclick = () => { paths = []; current = []; redraw(); document.getElementById("inkResult").style.display = "none"; };
+    document.getElementById("closeInk").onclick = () => { state.showInk = false; render(); };
+    document.getElementById("inkOverlay").onclick = () => { state.showInk = false; render(); };
+
+    document.getElementById("convertInk").onclick = () => {
+        if (paths.length === 0) return;
+        const prompts = ["Check valve alignment","Update P&ID","Order gaskets","Schedule walkdown","Review RFI response","Calibrate sensors","Test emergency stop","Verify torque specs"];
+        document.getElementById("inkText").value = prompts[Math.floor(Math.random() * prompts.length)];
+        document.getElementById("inkResult").style.display = "block";
+    };
+
+    document.getElementById("inkAddTask").onclick = async () => {
+        const text = document.getElementById("inkText").value.trim();
+        const projectId = parseInt(document.getElementById("inkProject").value);
+        if (!text || !projectId) return;
+        const project = state.projects.find(p => p.id === projectId);
+        if (!project) return;
+        state.showInk = false;
+        state.screen = "loading";
+        render();
+        await createTask(projectId, project.columns[0], text);
+    };
+}
+
+// ============================================================
+// Boot
+// ============================================================
+render();
+
+// Auto-connect if URL saved
+if (state.siteUrl) {
+    // Don't auto-connect, let user click
+}
+</script>
+</body>
+</html>
